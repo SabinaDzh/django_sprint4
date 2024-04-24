@@ -39,7 +39,7 @@ from test_edit import _test_edit
 )
 class TestCommentModelAttrs(_TestModelAttrs):
     @pytest.fixture(autouse=True)
-    def _set_model(self, CommentModel, CommentModelAdapter):
+    def _set_model(self, CommentModel: Model, CommentModelAdapter: CommentModelAdapterT):
         self._model = CommentModelAdapter(CommentModel)
 
     @property
@@ -48,7 +48,7 @@ class TestCommentModelAttrs(_TestModelAttrs):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_comment_created_at(comment, CommentModelAdapter):
+def test_comment_created_at(comment: CommentModelAdapterT, CommentModelAdapter: CommentModelAdapterT):
     now = timezone.now()
     now_utc = now.astimezone(pytz.UTC).replace(tzinfo=None)
     assert abs(
