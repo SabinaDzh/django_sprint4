@@ -64,14 +64,11 @@ class CommentMixin:
     pk_url_kwarg = 'comment_id'
 
     def dispatch(self, request, *args, **kwargs):
-        post_id = self.kwargs['post_id']
-        post = get_object_or_404(Post, pk=post_id)
-
-        if self.get_object().author != request.user:
-            return redirect(
-                'blog:post_detail',
-                post_id=post.id
-            )
+        instance = get_object_or_404(
+            Comment, pk=self.kwargs['comment_id'],
+            post_comment_id=self.kwargs['post_id'])
+        if request.user != instance.author:
+            return redirect("blog:post_detail", post_id=self.kwargs['post_id'])
         return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self):
@@ -115,11 +112,8 @@ class ProfileListView(ListView):
 
     def get_queryset(self):
         author = self.get_author()
-        if author != self.request.user:
-            queryset = get_posts_queryset(comments=True, filter=True)
-        else:
-            queryset = get_posts_queryset(filter=False, comments=True)
-
+        queryset = get_posts_queryset(
+            self.request.user != author, comments=True)
         return queryset.filter(author=author).order_by('-pub_date')
 
     def get_context_data(self, **kwargs):
@@ -199,6 +193,7 @@ class PostUpdateView(LoginRequiredMixin, PostMixin, UpdateView):
 
 
 class PostDeleteView(LoginRequiredMixin, PostMixin, DeleteView):
+    success_url = reverse_lazy('blog:index')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
